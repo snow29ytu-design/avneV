@@ -1,0 +1,6 @@
+{
+  "name": "CloudDrop",
+  "description": "Secure real-time file sharing and storage platform with resilient uploads, QR code mobile sharing, storage analytics, and private links with custom user access limits.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

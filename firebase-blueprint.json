@@ -1,0 +1,48 @@
+{
+  "entities": {
+    "FileMetadata": {
+      "title": "File Metadata",
+      "description": "Metadata for uploaded files",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Original filename" },
+        "size": { "type": "number", "description": "File size in bytes" },
+        "type": { "type": "string", "description": "MIME type" },
+        "url": { "type": "string", "description": "Download URL" },
+        "storagePath": { "type": "string", "description": "Path in Firebase Storage" },
+        "ownerId": { "type": "string", "description": "UID of the uploader" },
+        "ownerEmail": { "type": "string", "description": "Email of the uploader" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Upload timestamp" },
+        "isPublic": { "type": "boolean", "description": "Whether the file is publicly accessible" },
+        "isPrivateLink": { "type": "boolean", "description": "Whether private link sharing is enabled" },
+        "privateLinkId": { "type": "string", "description": "Unique token for private link access" },
+        "maxUsers": { "type": "number", "description": "Maximum number of users allowed to access via private link" },
+        "allowedEmails": { "type": "array", "items": { "type": "string" }, "description": "Whitelisted user emails" },
+        "accessedUsers": { "type": "array", "description": "List of user accounts who accessed via private link" }
+      },
+      "required": ["name", "size", "type", "url", "storagePath", "ownerId", "createdAt"]
+    },
+    "User": {
+      "title": "User Profile",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "lastLogin": { "type": "string", "format": "date-time" }
+      },
+      "required": ["email"]
+    }
+  },
+  "firestore": {
+    "/files/{fileId}": {
+      "schema": "FileMetadata",
+      "description": "Collection of file metadata documents"
+    },
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile documents"
+    }
+  }
+}

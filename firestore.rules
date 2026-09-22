@@ -1,0 +1,82 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: files
+    // Document ID: auto-generated
+    // Fields:
+    //   - name: string (required) - Original filename
+    //   - size: number (required) - File size in bytes
+    //   - type: string (required) - MIME type
+    //   - url: string (required) - Download URL
+    //   - storagePath: string (required) - Path in Firebase Storage
+    //   - ownerId: string (required) - UID of the uploader
+    //   - ownerEmail: string (optional) - Email of the uploader
+    //   - createdAt: timestamp (required) - Upload timestamp
+    //   - isPublic: bool (optional) - Public access flag
+    //
+    // Collection: users
+    // Document ID: userId
+    // Fields:
+    //   - email: string (required)
+    //   - displayName: string (optional)
+    //   - photoURL: string (optional)
+    //   - lastLogin: timestamp (optional)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isFileOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.ownerId;
+    }
+
+    function isValidFile(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() < 255 &&
+             data.size is number && data.size >= 0 &&
+             data.type is string &&
+             data.url is string && data.url.size() > 0 &&
+             data.storagePath is string &&
+             data.ownerId == request.auth.uid &&
+             (data.createdAt is timestamp || data.createdAt == request.time);
+    }
+
+    function isValidUser(data) {
+      return data.email is string && data.email.size() > 0;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create, update: if isOwner(userId) && isValidUser(request.resource.data);
+    }
+
+    match /files/{fileId} {
+      allow read: if isFileOwner() || 
+                     (resource.data.isPublic == true) || 
+                     (isAuthenticated() && resource.data.isPrivateLink == true);
+      allow create: if isAuthenticated() && isValidFile(request.resource.data);
+      allow update: if isFileOwner() || 
+                    (isAuthenticated() && resource.data.isPrivateLink == true && 
+                     request.resource.data.diff(resource.data).affectedKeys().hasOnly(['accessedUsers']));
+      allow delete: if isFileOwner();
+    }
+  }
+}
